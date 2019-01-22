@@ -89,41 +89,39 @@ Game.prototype.addKeyActions = function(){
   const player = this.chars.player;
   player.activeMotionKeys = [];
   const keyDown = (event) => {
+    // Function declarations
+    const removeClones = (value) => {
+      for (i=0; i<player.activeMotionKeys.length; i++){
+        if (player.activeMotionKeys[i] === value) player.activeMotionKeys.splice(i,1);
+      }
+    }
+    const addToArray = (value) => player.activeMotionKeys.unshift(value)
     // Left
     if (event.keyCode === 37){
       if (player.activeMotionKeys[0] !== "left"){
-        // Remove Clone
-        for (i=0; i<player.activeMotionKeys.length; i++){
-          if (player.activeMotionKeys[i] === "left") player.activeMotionKeys.splice(i,1);
-        }
-        // Add to Array
-        player.activeMotionKeys.unshift("left");
+        removeClones("left");
+        addToArray("left");
       }
     }
     // Right
     else if (event.keyCode === 39){
       if (player.activeMotionKeys[0] !== "right"){
-        // Remove Clone
-        for (i=0; i<player.activeMotionKeys.length; i++){
-          if (player.activeMotionKeys[i] === "right") player.activeMotionKeys.splice(i,1);
-        }
-        // Add to Array
-        player.activeMotionKeys.unshift("right");
+        removeClones("right");
+        addToArray("right");
       }
     }
-    console.log(player.activeMotionKeys);
   }
   const keyUp = (event) => {
-    if (event.keyCode === 37){
+    // Function declarations
+    const removeActiveKeys = (value) => {
       for (i=0; i<player.activeMotionKeys.length; i++){
-        if (player.activeMotionKeys[i] === "left") player.activeMotionKeys.splice(i,1);
+        if (player.activeMotionKeys[i] === value) player.activeMotionKeys.splice(i,1);
       }
     }
-    else if (event.keyCode === 39){
-      for (i=0; i<player.activeMotionKeys.length; i++){
-        if (player.activeMotionKeys[i] === "right") player.activeMotionKeys.splice(i,1);
-      }
-    }
+    // Left
+    if (event.keyCode === 37) removeActiveKeys("left");
+    // Right
+    else if (event.keyCode === 39) removeActiveKeys("right");
   }
   document.addEventListener("keydown", function(){keyDown(event)} );
   document.addEventListener("keyup", function(){keyUp(event)} );
@@ -140,13 +138,5 @@ firstGame.loadLevel(0);
 firstGame.addKeyActions();
 firstGame.startExecutingActions();
 firstGame.startDrawing(60);
-
-
-
-/*
-Game.prototype.test = function(){
-}
-firstGame.test();
-*/
 
 console.log(firstGame);
