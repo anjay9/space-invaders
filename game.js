@@ -1,80 +1,3 @@
-/*function Game() {
-  this.this =
-
-  setup();
-  const setup = () => {
-    const that = this;
-    const canvas = document.getElementById("space-invaders-canvas");
-    const context = cavas.getContext("2d");
-    const tileSize = 30;
-    const gridSize = 10;
-    canvas.width = tileSize * gridSize;
-    canvas.height = tileSize * gridSize;
-  }
-
-  const setup = {
-
-    canvas.width
-
-    tileSize: 30,
-    gridSize: 10
-  }
-  canvas.width = tileSize * gridSize;
-  canvas.height = tileSize * gridSize;
-
-  const chars = {};
-
-  // ------------------------------------------------------
-
-  function Char(style, x, y){
-    this.style = style;
-    this.x = x;
-    this.y = y;
-    this.motion = 'none';
-  }
-
-  prototype.Char.draw = function(){
-    ctx.fillStyle = this.style;
-    ctx.fillRect(x, y, tileSize, tileSize);
-  }
-
-  chars.mainChar = new Char('green', 100, 250);
-
-  // ----------------------------------------------------------
-
-  const drawCanvas = () => {
-    ctx.fillStyle = canvasColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  const drawMainChar = () => {
-    ctx.fillStyle = mainChar.styleColor;
-    ctx.fillRect(mainChar.x, mainChar.y, tileSize, tileSize);
-  }
-
-  const loadPosition = (mainChar) => {
-    if (mainChar === 'left') mainChar.x--;
-    else if (mainChar === 'right') mainChar.x++;
-  }
-
-  setInterval(function(){
-    drawCanvas();
-  }, 1000/60);
-
-  setInterval(function(){
-    loadMainCharPosition();
-  }, 1000/10);
-
-  const keyPush = (event) => {
-    if (event.keyCode === 37) mainChar.motion = "left";
-    else if (event.keyCode === 39) mainChar.motion = "right";
-  }
-
-  document.addEventListener("keydown", function(){keyPush(event)});
-
-}
-*/
-
 function Game(){}
 
 Game.prototype.loadBasics = function(){
@@ -147,6 +70,12 @@ Game.prototype.startExecutingActions = function(){
   // Characters
   for (key in _.chars){
     setInterval(function(){
+      // Set Player Motion
+      const player = _.chars.player;
+      if (key === "player"){
+        if (player.activeMotionKeys.length === 0) player.motion = "none";
+        else player.motion = player.activeMotionKeys[0];
+      }
       console.log(_.chars.player.motion);
       if (_.chars[key].motion === "left") _.chars[key].x--;
       else if (_.chars[key].motion === "right") _.chars[key].x++;
@@ -156,18 +85,46 @@ Game.prototype.startExecutingActions = function(){
   }
 }
 
-Game.prototype.tempName = function(){
+Game.prototype.addKeyActions = function(){
   const player = this.chars.player;
-
+  player.activeMotionKeys = [];
   const keyDown = (event) => {
-    if (player.motion === "none"){
-      if (event.keyCode === 37) player.motion = "left";
-      else if (event.keyCode === 39) player.motion = "right";
+    // Left
+    if (event.keyCode === 37){
+      if (player.activeMotionKeys[0] !== "left"){
+        // Remove Clone
+        for (i=0; i<player.activeMotionKeys.length; i++){
+          if (player.activeMotionKeys[i] === "left") player.activeMotionKeys.splice(i,1);
+        }
+        // Add to Array
+        player.activeMotionKeys.unshift("left");
+      }
+    }
+    // Right
+    else if (event.keyCode === 39){
+      if (player.activeMotionKeys[0] !== "right"){
+        // Remove Clone
+        for (i=0; i<player.activeMotionKeys.length; i++){
+          if (player.activeMotionKeys[i] === "right") player.activeMotionKeys.splice(i,1);
+        }
+        // Add to Array
+        player.activeMotionKeys.unshift("right");
+      }
+    }
+    console.log(player.activeMotionKeys);
+  }
+  const keyUp = (event) => {
+    if (event.keyCode === 37){
+      for (i=0; i<player.activeMotionKeys.length; i++){
+        if (player.activeMotionKeys[i] === "left") player.activeMotionKeys.splice(i,1);
+      }
+    }
+    else if (event.keyCode === 39){
+      for (i=0; i<player.activeMotionKeys.length; i++){
+        if (player.activeMotionKeys[i] === "right") player.activeMotionKeys.splice(i,1);
+      }
     }
   }
-
-  const keyUp = (event) => player.motion = "none";
-
   document.addEventListener("keydown", function(){keyDown(event)} );
   document.addEventListener("keyup", function(){keyUp(event)} );
 }
@@ -180,9 +137,16 @@ firstGame.loadBasics();
 firstGame.loadTemplates();
 firstGame.loadLevel(0);
 
+firstGame.addKeyActions();
 firstGame.startExecutingActions();
 firstGame.startDrawing(60);
 
-firstGame.tempName();
+
+
+/*
+Game.prototype.test = function(){
+}
+firstGame.test();
+*/
 
 console.log(firstGame);
