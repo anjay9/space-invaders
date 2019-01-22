@@ -1,5 +1,9 @@
 function Game(){}
 
+Game.prototype.getKeyByValue = function(object, value){
+  return Object.keys(object).find(key => object[key] === value);
+}
+
 Game.prototype.loadBasics = function(){
   this.canvas = document.getElementById("space-invaders-canvas");
   this.context = this.canvas.getContext("2d");
@@ -38,7 +42,9 @@ Game.prototype.loadLevel = function(levelNumber){
   // Level 0
   if (levelNumber === 0){
     this.chars = {
-      player: new Char("player", 300/2-30/2, 240)
+      player: new Char("player", 300/2-30/2, 240),
+      enemy_0: new Char("weakEnemy", 100, 100),
+      enemy_1: new Char("weakEnemy", 150, 100)
     }
   }
   // Level 1
@@ -69,20 +75,23 @@ Game.prototype.startExecutingActions = function(){
   const _ = this;
   // Characters
   for (key in _.chars){
-    setInterval(function(){
+    const char = _.chars[key];
+    const executeActions = () => {
       // Set Player Motion
-      const player = _.chars.player;
-      if (key === "player"){
+      if (_.getKeyByValue(_.chars, char) === "player"){
+        const player = _.chars.player;
         if (player.activeMotionKeys.length === 0) player.motion = "none";
         else player.motion = player.activeMotionKeys[0];
       }
-      console.log(_.chars.player.motion);
-      if (_.chars[key].motion === "left") _.chars[key].x--;
-      else if (_.chars[key].motion === "right") _.chars[key].x++;
-      else if (_.chars[key].motion === "top") _.chars[key].y--;
-      else if (_.chars[key].motion === "down") _.chars[key].y++;
-    },1000/_.chars[key].speed);
+      // Execute Motions
+      if (char.motion === "left") char.x--;
+      else if (char.motion === "right") char.x++;
+      else if (char.motion === "top") char.y--;
+      else if (char.motion === "down") char.y++;
+    }
+    setInterval(function(){executeActions()},1000/_.chars[key].speed);
   }
+
 }
 
 Game.prototype.addKeyActions = function(){
