@@ -92,12 +92,14 @@ Game.prototype.loadTemplates = function(){
   function CharTemplate(style, speed) {
     this.style = style;
     this.speed = speed;
+    this.motion = "none";
+
   }
   this.charTemplates = {
-    player: new CharTemplate("green", 1),
-    weakEnemy: new CharTemplate("purple", 0.5),
-    mediumEnemy: new CharTemplate("teal", 1),
-    strongEnemy: new CharTemplate("maroon", 1.5)
+    player: new CharTemplate("green", 200),
+    weakEnemy: new CharTemplate("purple", 50),
+    mediumEnemy: new CharTemplate("teal", 100),
+    strongEnemy: new CharTemplate("maroon", 150)
   }
 }
 
@@ -126,7 +128,7 @@ Game.prototype.loadLevel = function(levelNumber){
   }
 }
 
-Game.prototype.startDrawing = function(frames){
+Game.prototype.startDrawing = function(fps){
   const _ = this;
   setInterval(function(){
     // Canvas
@@ -137,16 +139,50 @@ Game.prototype.startDrawing = function(frames){
       _.context.fillStyle = _.chars[key].style;
       _.context.fillRect(_.chars[key].x, _.chars[key].y, _.tileSize, _.tileSize);
     }
-  },1000/frames);
+  },1000/fps);
+}
+
+Game.prototype.startExecutingActions = function(){
+  const _ = this;
+  // Characters
+  for (key in _.chars){
+    setInterval(function(){
+      console.log(_.chars.player.motion);
+      if (_.chars[key].motion === "left") _.chars[key].x--;
+      else if (_.chars[key].motion === "right") _.chars[key].x++;
+      else if (_.chars[key].motion === "top") _.chars[key].y--;
+      else if (_.chars[key].motion === "down") _.chars[key].y++;
+    },1000/_.chars[key].speed);
+  }
+}
+
+Game.prototype.tempName = function(){
+  const player = this.chars.player;
+
+  const keyDown = (event) => {
+    if (player.motion === "none"){
+      if (event.keyCode === 37) player.motion = "left";
+      else if (event.keyCode === 39) player.motion = "right";
+    }
+  }
+
+  const keyUp = (event) => player.motion = "none";
+
+  document.addEventListener("keydown", function(){keyDown(event)} );
+  document.addEventListener("keyup", function(){keyUp(event)} );
 }
 
 const firstGame = new Game();
+
 window.onload = firstGame;
+
 firstGame.loadBasics();
 firstGame.loadTemplates();
 firstGame.loadLevel(0);
 
-firstGame.start
+firstGame.startExecutingActions();
 firstGame.startDrawing(60);
+
+firstGame.tempName();
 
 console.log(firstGame);
