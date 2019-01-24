@@ -20,7 +20,6 @@ Game.prototype.loadTemplates = function(){
     this.style = style;
     this.speed = speed;
     this.motion = "none";
-
   }
   this.charTemplates = {
     player: new CharTemplate("green", 200),
@@ -31,7 +30,9 @@ Game.prototype.loadTemplates = function(){
 }
 
 Game.prototype.loadLevel = function(levelNumber){
+  this.currentLevel = levelNumber;
   const _ = this;
+
   function Char(template, x, y){
     for (key in _.charTemplates[template]){
       this[key] = _.charTemplates[template][key];
@@ -39,22 +40,91 @@ Game.prototype.loadLevel = function(levelNumber){
     this.x = x;
     this.y = y;
   }
-  // Level 0
-  if (levelNumber === 0){
-    this.chars = {
-      player: new Char("player", 300/2-30/2, 240),
-      enemy_0: new Char("weakEnemy", 100, 100),
-      enemy_1: new Char("weakEnemy", 150, 100)
+
+  Char.prototype.startActions = function(){
+    if (typeof this.actions === "function"){
+      setInterval(function(){ this.actions() }.bind(this) ,1000/this.speed);
+    }
+    else {
+      const char = _.getKeyByValue(_.chars, this);
+      console.log(`The "${char}" character does not contain the "actions" function.`);
+      alert(`The "${char}" character does not contain the "actions" function.`);
     }
   }
-  // Level 1
-  else if (levelNumber === 1){
 
+  // Character actions
+  Char.prototype.activeKeyToMotion = function(){
+    if (this.activeMotionKeys.length === 0) this.motion = "none";
+    else this.motion = this.activeMotionKeys[0];
   }
-  // Level 2
-  else if (levelNumber === 2){
+  Char.prototype.executeMotion = function(){
+    if (this.motion === "left") this.x--;
+    else if (this.motion === "right") this.x++;
+    else if (this.motion === "top") this.y--;
+    else if (this.motion === "down") this.y++;
+  }
 
+  const lvl_0 = () => {
+    // Characters
+    this.chars = {
+      player: new Char("player", 300/2-30/2, 240),
+      enemy_0: new Char("weakEnemy", 10, 10),
+      enemy_1: new Char("weakEnemy", 50, 10),
+      enemy_2: new Char("weakEnemy", 90, 10),
+      enemy_3: new Char("weakEnemy", 130, 10),
+      enemy_4: new Char("weakEnemy", 170, 10),
+      enemy_5: new Char("weakEnemy", 10, 50),
+      enemy_6: new Char("weakEnemy", 50, 50),
+      enemy_7: new Char("weakEnemy", 90, 50),
+      enemy_8: new Char("weakEnemy", 130, 50),
+      enemy_9: new Char("weakEnemy", 170, 50),
+      enemy_10: new Char("weakEnemy", 10, 90),
+      enemy_11: new Char("weakEnemy", 50, 90),
+      enemy_12: new Char("weakEnemy", 90, 90),
+      enemy_13: new Char("weakEnemy", 130, 90),
+      enemy_14: new Char("weakEnemy", 170, 90)
+    }
+    // Enemy Additional Properties
+    for (key in this.chars){
+      if (key.includes("enemy")){
+        this.chars[key].patrolPointA = this.chars[key].x;
+        this.chars[key].patrolPointB = this.chars[key].x + 90;
+      }
+    }
+    // Player Actions
+    this.chars.player.actions = function(){
+      this.activeKeyToMotion();
+      this.executeMotion();
+    }
+    // Enemy Actions
+    const allEnemiesReached = (point) => {
+      for (key in this.chars){
+        if (key.includes("enemy")){
+          if (this.chars[key].x !== this.chars[key]["patrolPoint"+point]) return false;
+        }
+      }
+      return true;
+    }
+    const setAllEnemiesMotion = (direction) => {
+      for (key in this.chars){
+        if (key.includes("enemy")){
+          this.chars[key].motion = direction;
+        }
+      }
+    }
+    for (key in this.chars){
+      if (key.includes("enemy")){
+        this.chars[key].actions = function(){
+          if (allEnemiesReached("A")) setAllEnemiesMotion("right");
+          else if (allEnemiesReached("B")) setAllEnemiesMotion("left");
+          this.executeMotion();
+        }
+      }
+    }
   }
+
+  eval(`lvl_${this.currentLevel}()`);
+
 }
 
 Game.prototype.startDrawing = function(fps){
@@ -71,30 +141,11 @@ Game.prototype.startDrawing = function(fps){
   },1000/fps);
 }
 
-Game.prototype.startExecutingActions = function(){
-  const _ = this;
-  // Characters
-  for (key in _.chars){
-    const char = _.chars[key];
-    const executeActions = () => {
-      // Set Player Motion
-      if (_.getKeyByValue(_.chars, char) === "player"){
-        const player = _.chars.player;
-        if (player.activeMotionKeys.length === 0) player.motion = "none";
-        else player.motion = player.activeMotionKeys[0];
-      }
-      // Execute Motions
-      if (char.motion === "left") char.x--;
-      else if (char.motion === "right") char.x++;
-      else if (char.motion === "top") char.y--;
-      else if (char.motion === "down") char.y++;
-    }
-    setInterval(function(){executeActions()},1000/_.chars[key].speed);
-  }
-
+Game.prototype.startAllActions = function(){
+  for (key in this.chars) this.chars[key].startActions();
 }
 
-Game.prototype.addKeyActions = function(){
+Game.prototype.addActionKeys = function(){
   const player = this.chars.player;
   player.activeMotionKeys = [];
   const keyDown = (event) => {
@@ -144,8 +195,9 @@ firstGame.loadBasics();
 firstGame.loadTemplates();
 firstGame.loadLevel(0);
 
-firstGame.addKeyActions();
-firstGame.startExecutingActions();
+firstGame.addActionKeys();
+
+firstGame.startAllActions();
 firstGame.startDrawing(60);
 
 console.log(firstGame);
