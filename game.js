@@ -7,25 +7,35 @@ Game.prototype.getKeyByValue = function(object, value){
 Game.prototype.loadBasics = function(){
   this.canvas = document.getElementById("space-invaders-canvas");
   this.context = this.canvas.getContext("2d");
-  this.tileSize = 30;
-  this.gridSize = 10;
   this.canvas = document.getElementById("space-invaders-canvas");
-  this.canvas.width = this.tileSize * this.gridSize;
-  this.canvas.height = this.tileSize * this.gridSize;
+  this.canvas.width = 300;
+  this.canvas.height = 300;
   this.defaultStyle = "black";
 }
 
 Game.prototype.loadTemplates = function(){
-  function CharTemplate(style, speed) {
+  function CharTemplate(style, width, height, speed) {
     this.style = style;
+    this.width = width;
+    this.height = height;
     this.speed = speed;
     this.motion = "none";
   }
   this.charTemplates = {
-    player: new CharTemplate("green", 200),
-    weakEnemy: new CharTemplate("purple", 50),
-    mediumEnemy: new CharTemplate("teal", 100),
-    strongEnemy: new CharTemplate("maroon", 150)
+    player: new CharTemplate("green", 30, 30, 200),
+    weakEnemy: new CharTemplate("purple", 30, 30, 50),
+    mediumEnemy: new CharTemplate("teal", 30, 30, 100),
+    strongEnemy: new CharTemplate("maroon", 30, 30, 100, 150)
+  }
+  function ProjectileTemplate(style, width, height, speed){
+    this.style = style;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+    this.motion = "none";
+  }
+  this.projectileTemplates = {
+    weakEnemyMissle: new ProjectileTemplate("fuchsia", 5, 5, 50)
   }
 }
 
@@ -33,6 +43,7 @@ Game.prototype.loadLevel = function(levelNumber){
   this.currentLevel = levelNumber;
   const _ = this;
 
+  // Char
   function Char(template, x, y){
     for (key in _.charTemplates[template]){
       this[key] = _.charTemplates[template][key];
@@ -40,7 +51,6 @@ Game.prototype.loadLevel = function(levelNumber){
     this.x = x;
     this.y = y;
   }
-
   Char.prototype.startActions = function(){
     if (typeof this.actions === "function"){
       setInterval(function(){ this.actions() }.bind(this) ,1000/this.speed);
@@ -51,7 +61,6 @@ Game.prototype.loadLevel = function(levelNumber){
       alert(`The "${char}" character does not contain the "actions" function.`);
     }
   }
-
   // Character actions
   Char.prototype.activeKeyToMotion = function(){
     if (this.activeMotionKeys.length === 0) this.motion = "none";
@@ -62,6 +71,15 @@ Game.prototype.loadLevel = function(levelNumber){
     else if (this.motion === "right") this.x++;
     else if (this.motion === "top") this.y--;
     else if (this.motion === "down") this.y++;
+  }
+
+  // Projectile
+  function Projectile(template, x, y){
+    for (key in _.projectileTemplates[template]){
+      this[key] = _.projectileTemplates[template][key];
+    }
+    this.x = x;
+    this.y = y;
   }
 
   const lvl_0 = () => {
@@ -83,7 +101,7 @@ Game.prototype.loadLevel = function(levelNumber){
       enemy_12: new Char("weakEnemy", 90, 90),
       enemy_13: new Char("weakEnemy", 130, 90),
       enemy_14: new Char("weakEnemy", 170, 90)
-    }
+    };
     // Enemy Additional Properties
     for (key in this.chars){
       if (key.includes("enemy")){
@@ -91,6 +109,10 @@ Game.prototype.loadLevel = function(levelNumber){
         this.chars[key].patrolPointB = this.chars[key].x + 90;
       }
     }
+    // Projectiles
+    this.projectiles = {
+      e_missle_0: new Projectile("weakEnemyMissle", 10, 10)
+    };
     // Player Actions
     this.chars.player.actions = function(){
       this.activeKeyToMotion();
@@ -135,8 +157,15 @@ Game.prototype.startDrawing = function(fps){
     _.context.fillRect(0, 0, _.canvas.width, _.canvas.height);
     // Characters
     for (key in _.chars){
-      _.context.fillStyle = _.chars[key].style;
-      _.context.fillRect(_.chars[key].x, _.chars[key].y, _.tileSize, _.tileSize);
+      const char = _.chars[key];
+      _.context.fillStyle = char.style;
+      _.context.fillRect(char.x, char.y, char.width, char.height);
+    }
+    // Projectiles
+    for (key in _.projectiles){
+      const projectile = _.projectiles[key];
+      _.context.fillStyle = projectile.style;
+      _.context.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
     }
   },1000/fps);
 }
