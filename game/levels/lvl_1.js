@@ -1,5 +1,7 @@
 Game.prototype.lvl_1 = function(){
 
+  const _ = this;
+
   // PROJECTILES EMPTY ARRAY
   this.projectiles = [];
 
@@ -26,7 +28,7 @@ Game.prototype.lvl_1 = function(){
   // ADDITIONAL PROPERIES
   // Enemies
   for (key in this.chars){
-    if (key.includes("enemy")){
+    if (this.chars[key].fraction === "enemy"){
       this.chars[key].patrolPointA = this.chars[key].x;
       this.chars[key].patrolPointB = this.chars[key].x + 90;
     }
@@ -40,7 +42,7 @@ Game.prototype.lvl_1 = function(){
   }
   // Enemy
   for (key in this.chars){
-    if (key.includes("enemy")){
+    if (this.chars[key].fraction === "enemy"){
       const enemy = this.chars[key];
       // Function Declarations
       const enemyReachedPoint = (point) => {
@@ -49,7 +51,7 @@ Game.prototype.lvl_1 = function(){
       }
       const allEnemiesReached = (point) => {
         for (key in this.chars){
-          if (key.includes("enemy")){
+          if (this.chars[key].fraction === "enemy"){
             if (this.chars[key].x !== this.chars[key]["patrolPoint"+point]) return false;
           }
         }
@@ -57,17 +59,23 @@ Game.prototype.lvl_1 = function(){
       }
       const setAllEnemiesMotion = (direction) => {
         for (key in this.chars){
-          if (key.includes("enemy")){
+          if (this.chars[key].fraction === "enemy"){
             this.chars[key].motion = direction;
           }
         }
       }
+
       enemy.regularActions = function(){
         this.executeMotion();
         if (enemyReachedPoint("A") || enemyReachedPoint("B")) enemy.motion = "none";
         if (allEnemiesReached("A")) setAllEnemiesMotion("right");
         else if (allEnemiesReached("B")) setAllEnemiesMotion("left");
+        if (this.isHit()){
+          const key = _.getKeyByValue(_.chars, this);
+          delete _.chars[key];
+        }
       }
+
     }
   }
 
