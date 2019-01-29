@@ -3,7 +3,7 @@ Game.prototype.lvl_1 = function(){
   const _ = this;
 
   // PROJECTILES EMPTY ARRAY
-  this.projectiles = [];
+  this.projectiles = {};
 
   // CHARACTERS
   this.chars = {
@@ -70,9 +70,11 @@ Game.prototype.lvl_1 = function(){
         if (enemyReachedPoint("A") || enemyReachedPoint("B")) enemy.motion = "none";
         if (allEnemiesReached("A")) setAllEnemiesMotion("right");
         else if (allEnemiesReached("B")) setAllEnemiesMotion("left");
-        if (this.isHit()){
-          const key = _.getKeyByValue(_.chars, this);
-          delete _.chars[key];
+        const collidedElems = this.isProjHittingChar();
+        if (collidedElems !== "none"){
+          clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
+          delete _.projectiles[collidedElems.projectileKey];
+          delete _.chars[collidedElems.charKey];
         }
       }
 

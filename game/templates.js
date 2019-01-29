@@ -28,6 +28,7 @@ Game.prototype.loadTemplates = function(){
 
   // ELEMENT
   function GameElem(type, template, x, y){
+    this.type = type;
     // Copy each element property
     for (key in _.templates[type][template]) this[key] = _.templates[type][template][key];
     // Set position
@@ -38,7 +39,7 @@ Game.prototype.loadTemplates = function(){
   // Starter of Regular Functions
   GameElem.prototype.startRegularActions = function(){
     if (typeof this.regularActions === "function"){
-      setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
+      this.speedInterval = setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
     }
     else{
       console.log(this);
@@ -57,38 +58,80 @@ Game.prototype.loadTemplates = function(){
     if (this.activeMotionKeys.length === 0) this.motion = "none";
     else this.motion = this.activeMotionKeys[0];
   }
-  GameElem.prototype.isHit = function(){
-    for (key in _.projectiles){
-      const proj = _.projectiles[key];
+  GameElem.prototype.isProjHittingChar = function(){
+    const setDiffTypeContainer = (type) => {
+      if (type === "char") return _.projects;
+      else if (type === "projectile") return _.chars;
+    }
+    const diffTypeContainer = setDiffTypeContainer(this.type);
+    for (const diffTypeKey in diffTypeContainer){
+      const diffTypeElem = diffTypeContainer[diffTypeKey];
       // Projectiles doesnt kill characters from the same fraction.
-      if (this.fraction !== proj.fraction){
+      if (this.fraction !== diffTypeElem.fraction){
         // Projectile isn't touching the character from the perspective of one axle - Return True
         // Otherwise - Return False
-        const hitFromPerspectiveOfOneAxle = (axle) => {
-          const isLarger = (larger, smaller) => {
-            if (larger > smaller) return true;
+        const hitFromPerspectiveOfOneAxle = (axle, obj1, obj2) => {
+          const isLarger = (largerValue, smallerValue) => {
+            if (largerValue > smallerValue) return true;
             else return false;
           }
-          if (isLarger(this[axle], proj[axle]) === isLarger(this[axle], proj[axle] + proj.width)
-          === isLarger(this[axle] + this.width, proj[axle]) === isLarger(this[axle] + this.width, proj[axle])) return false;
+          if (isLarger(obj1[axle], obj2[axle]) === isLarger(obj1[axle], obj2[axle] + obj2.width)
+          === isLarger(obj1[axle] + obj1.width, obj2[axle]) === isLarger(obj1[axle] + obj1.width, obj2[axle])) return false;
           else return true;
         }
         // Check if the character is hit from the perspective of both axes
-        if (hitFromPerspectiveOfOneAxle("x") && hitFromPerspectiveOfOneAxle("y")) return true;
+        if (hitFromPerspectiveOfOneAxle("x", this, diffTypeElem) && hitFromPerspectiveOfOneAxle("y", this, diffTypeElem)){
+          // Return keys for both of the collided elements
+          const thisContainer = () => {
+            if (this.type === "char") return _.chars;
+            else if (this.type === "projectile") return _.projectiles;
+          }
+          return {[this.type+"Key"]: _.getKeyByValue(thisContainer(), this),
+          [diffTypeElem.type+"Key"]: diffTypeKey};
+        }
       }
     }
-    // No projectiles hit the character
-    return false;
+    // If no projectiles collided with chars then return "none"
+    return "none";
   }
 
   // Other Actions
   GameElem.prototype.shoot = function(){
-    const index = _.projectiles.push(_.createGameElem("projectile", "playerInitialMissle", this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2, this.y));
-    _.projectiles[index-1].motion = "top";
-    _.projectiles[index-1].regularActions = function(){
-      _.projectiles[index-1].executeMotion();
+    if (this.type === "char"){
+      const thisKey = _.getKeyByValue(_.chars, this);
+      const findFreeKey = (keyFirstPart) => {
+        let found = false;
+        let number = 0;
+        const keyAlreadyExist = (keyProposition) => {
+          for (key in _.projectiles){
+            if (key === keyProposition) return true;
+          }
+          return false;
+        }
+        while (found === false){
+          if (number > 1000) alert("Trying to assign a projectile to the key with number that is larger than 1000.");
+          const keyProposition = keyFirstPart + number;
+          if (keyAlreadyExist(keyProposition) === false){
+            found = true;
+            return keyProposition;
+          }
+          number++;
+        }
+      }
+      const freeKey = findFreeKey(thisKey);
+      _.projectiles[freeKey] = _.createGameElem("projectile", "playerInitialMissle", this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2, this.y);
+      _.projectiles[freeKey].motion = "top";
+      _.projectiles[freeKey].regularActions = function(){
+        _.projectiles[freeKey].executeMotion();
+        const collidedElems = _.projectiles[freeKey].isProjHittingChar();
+        if (collidedElems !== "none"){
+          clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
+          delete _.projectiles[collidedElems.projectileKey];
+          delete _.chars[collidedElems.charKey];
+        }
+      }
+      _.projectiles[freeKey].startRegularActions();
     }
-    _.projectiles[index-1].startRegularActions();
   }
 
   Game.prototype.createGameElem = function(type, template, x, y){
