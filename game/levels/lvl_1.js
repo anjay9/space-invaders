@@ -2,9 +2,6 @@ Game.prototype.lvl_1 = function(){
 
   const _ = this;
 
-  // PROJECTILES EMPTY ARRAY
-  this.projectiles = {};
-
   // CHARACTERS
   this.chars = {
     player: this.createGameElem("char", "player", 300/2-30/2, 240),
@@ -39,6 +36,12 @@ Game.prototype.lvl_1 = function(){
   this.chars.player.regularActions = function(){
     this.activeKeyToMotion();
     this.executeMotion();
+    const collidedElems = this.isProjHittingChar();
+    if (collidedElems !== "none"){
+      clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
+      delete _.projectiles[collidedElems.projectileKey];
+      delete _.chars[collidedElems.charKey];
+    }
   }
   // Enemy
   for (key in this.chars){

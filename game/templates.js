@@ -1,5 +1,8 @@
 Game.prototype.loadTemplates = function(){
 
+  this.chars = {};
+  this.projectiles = {};
+
   const _ = this;
 
   // TEMPLATE
@@ -110,7 +113,7 @@ Game.prototype.loadTemplates = function(){
         }
         while (found === false){
           if (number > 1000) alert("Trying to assign a projectile to the key with number that is larger than 1000.");
-          const keyProposition = keyFirstPart + number;
+          const keyProposition = keyFirstPart + "Proj" + number;
           if (keyAlreadyExist(keyProposition) === false){
             found = true;
             return keyProposition;
