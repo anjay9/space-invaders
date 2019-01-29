@@ -29,7 +29,7 @@ Game.prototype.loadTemplates = function(){
     }
   }
 
-  // ELEMENT
+  // GAME ELEMENT
   function GameElem(type, template, x, y){
     this.type = type;
     // Copy each element property
@@ -39,7 +39,7 @@ Game.prototype.loadTemplates = function(){
     this.y = y;
   }
 
-  // Starter of Regular Functions
+  // UNREGULAR ACTIONS
   GameElem.prototype.startRegularActions = function(){
     if (typeof this.regularActions === "function"){
       this.speedInterval = setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
@@ -49,8 +49,12 @@ Game.prototype.loadTemplates = function(){
       console.log("^ The element above doesnt contain the regularActions funciton.");
     }
   }
+  GameElem.prototype.shoot = function(template, direction){
+    if (this.type === "char") this.projectileSpawner();
+    else alert("Game element that isn't a char is trying to shoot.");
+  }
 
-  // Regular Actions
+  // REGULAR ACTIONS
   GameElem.prototype.executeMotion = function(){
     if (this.motion === "left") this.x--;
     else if (this.motion === "right") this.x++;
@@ -97,46 +101,16 @@ Game.prototype.loadTemplates = function(){
     // If no projectiles collided with chars then return "none"
     return "none";
   }
-
-  // Other Actions
-  GameElem.prototype.shoot = function(){
-    if (this.type === "char"){
-      const thisKey = _.getKeyByValue(_.chars, this);
-      const findFreeKey = (keyFirstPart) => {
-        let found = false;
-        let number = 0;
-        const keyAlreadyExist = (keyProposition) => {
-          for (key in _.projectiles){
-            if (key === keyProposition) return true;
-          }
-          return false;
-        }
-        while (found === false){
-          if (number > 1000) alert("Trying to assign a projectile to the key with number that is larger than 1000.");
-          const keyProposition = keyFirstPart + "Proj" + number;
-          if (keyAlreadyExist(keyProposition) === false){
-            found = true;
-            return keyProposition;
-          }
-          number++;
-        }
-      }
-      const freeKey = findFreeKey(thisKey);
-      _.projectiles[freeKey] = _.createGameElem("projectile", "playerInitialMissle", this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2, this.y);
-      _.projectiles[freeKey].motion = "top";
-      _.projectiles[freeKey].regularActions = function(){
-        _.projectiles[freeKey].executeMotion();
-        const collidedElems = _.projectiles[freeKey].isProjHittingChar();
-        if (collidedElems !== "none"){
-          clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
-          delete _.projectiles[collidedElems.projectileKey];
-          delete _.chars[collidedElems.charKey];
-        }
-      }
-      _.projectiles[freeKey].startRegularActions();
+  GameElem.prototype.checkCollision = function(){
+    const collidedElems = this.isProjHittingChar();
+    if (collidedElems !== "none"){
+      clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
+      delete _.projectiles[collidedElems.projectileKey];
+      delete _.chars[collidedElems.charKey];
     }
   }
 
+  // GAME PROTOTYPE METHOD FOR CREATING GAME ELEMENT
   Game.prototype.createGameElem = function(type, template, x, y){
     return new GameElem(type, template, x, y);
   }
