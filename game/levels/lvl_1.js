@@ -24,7 +24,6 @@ Game.prototype.lvl_1 = function(){
 
   // ADDITIONAL PROPERIES
   // Player
-  console.log(this);
   this.chars.player.projectileSpawner = function(){
     const xProjPos = this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2;
     const yProjPos = this.y;
@@ -38,22 +37,12 @@ Game.prototype.lvl_1 = function(){
     }
   }
 
-  // ASSIGNING ACTIONS
-  // Player
-  this.chars.player.regularActions = function(){
-    this.activeKeyToMotion();
-    this.executeMotion();
-    const collidedElems = this.isProjHittingChar();
-    if (collidedElems !== "none"){
-      clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
-      delete _.projectiles[collidedElems.projectileKey];
-      delete _.chars[collidedElems.charKey];
-    }
-  }
+  // ACTIONS SPECIFIC FOR THIS LEVEL
   // Enemy
   for (key in this.chars){
     if (this.chars[key].fraction === "enemy"){
       const enemy = this.chars[key];
+
       // Function Declarations
       const enemyReachedPoint = (point) => {
         if (enemy.x === enemy["patrolPoint"+point]) return true;
@@ -75,17 +64,11 @@ Game.prototype.lvl_1 = function(){
         }
       }
 
-      enemy.regularActions = function(){
-        this.executeMotion();
+      // Actual Method
+      enemy.actionsDependentOnLevel = function(){
         if (enemyReachedPoint("A") || enemyReachedPoint("B")) enemy.motion = "none";
         if (allEnemiesReached("A")) setAllEnemiesMotion("right");
         else if (allEnemiesReached("B")) setAllEnemiesMotion("left");
-        const collidedElems = this.isProjHittingChar();
-        if (collidedElems !== "none"){
-          clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
-          delete _.projectiles[collidedElems.projectileKey];
-          delete _.chars[collidedElems.charKey];
-        }
       }
 
     }

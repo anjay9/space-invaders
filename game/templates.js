@@ -5,7 +5,7 @@ Game.prototype.loadTemplates = function(){
 
   const _ = this;
 
-  // TEMPLATE
+  // TEMPLATE FUNCTION
   function Template(fraction, style, width, height, speed){
     this.fraction = fraction;
     this.style = style;
@@ -15,32 +15,8 @@ Game.prototype.loadTemplates = function(){
     this.motion = "none";
   }
 
-  // CREATING TEMPLATES
-  this.templates = {
-    char:{
-      player: new Template("player", "limegreen", 30, 30, 200),
-      weakEnemy: new Template("enemy", "coral", 30, 30, 50),
-      mediumEnemy: new Template("enemy", "teal", 30, 30, 100),
-      strongEnemy: new Template("enemy", "maroon", 30, 30, 100, 150)
-    },
-    projectile:{
-      playerInitialMissle: new Template("player", "lime", 5, 5, 125),
-      weakEnemyMissle: new Template("enemy", "fuchsia", 5, 5, 200)
-    }
-  }
-
-  // GAME ELEMENT
-  function GameElem(type, template, x, y){
-    this.type = type;
-    // Copy each element property
-    for (key in _.templates[type][template]) this[key] = _.templates[type][template][key];
-    // Set position
-    this.x = x;
-    this.y = y;
-  }
-
-  // UNREGULAR ACTIONS
-  GameElem.prototype.startRegularActions = function(){
+  // TEMPLATE PROTOTYPE - UNREGULAR ACTIONS
+  Template.prototype.startRegularActions = function(){
     if (typeof this.regularActions === "function"){
       this.speedInterval = setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
     }
@@ -49,23 +25,26 @@ Game.prototype.loadTemplates = function(){
       console.log("^ The element above doesnt contain the regularActions funciton.");
     }
   }
-  GameElem.prototype.shoot = function(template, direction){
+  Template.prototype.shoot = function(template, direction){
     if (this.type === "char") this.projectileSpawner();
     else alert("Game element that isn't a char is trying to shoot.");
   }
+  Template.prototype.startActionsDependentOnLevel = function(){
+    if (this.actionsDependentOnLevel instanceof Function) this.actionsDependentOnLevel();
+  }
 
-  // REGULAR ACTIONS
-  GameElem.prototype.executeMotion = function(){
+  // TEMPlATE PROTOTYPE - REGULAR ACTIONS
+  Template.prototype.executeMotion = function(){
     if (this.motion === "left") this.x--;
     else if (this.motion === "right") this.x++;
     else if (this.motion === "top") this.y--;
     else if (this.motion === "down") this.y++;
   }
-  GameElem.prototype.activeKeyToMotion = function(){
+  Template.prototype.activeKeyToMotion = function(){
     if (this.activeMotionKeys.length === 0) this.motion = "none";
     else this.motion = this.activeMotionKeys[0];
   }
-  GameElem.prototype.isProjHittingChar = function(){
+  Template.prototype.isProjHittingChar = function(){
     const setDiffTypeContainer = (type) => {
       if (type === "char") return _.projects;
       else if (type === "projectile") return _.chars;
@@ -101,13 +80,50 @@ Game.prototype.loadTemplates = function(){
     // If no projectiles collided with chars then return "none"
     return "none";
   }
-  GameElem.prototype.checkCollision = function(){
+  Template.prototype.checkCollision = function(){
     const collidedElems = this.isProjHittingChar();
     if (collidedElems !== "none"){
       clearInterval(_.projectiles[collidedElems.projectileKey].speedInterval);
       delete _.projectiles[collidedElems.projectileKey];
       delete _.chars[collidedElems.charKey];
     }
+  }
+
+  // CREATING TEMPLATE OBJECTS
+  this.templates = {
+    char:{
+      player: new Template("player", "limegreen", 30, 30, 200),
+      weakEnemy: new Template("enemy", "coral", 30, 30, 50),
+      mediumEnemy: new Template("enemy", "teal", 30, 30, 100),
+      strongEnemy: new Template("enemy", "maroon", 30, 30, 100, 150)
+    },
+    projectile:{
+      playerInitialMissle: new Template("player", "lime", 5, 5, 125),
+      weakEnemyMissle: new Template("enemy", "fuchsia", 5, 5, 200)
+    }
+  }
+
+  // TEMPLATE OBJECTS - REGULAR ACTIONS
+  this.templates.char.player.regularActions = function(){
+    this.activeKeyToMotion();
+    this.executeMotion();
+    this.startActionsDependentOnLevel();
+    this.checkCollision();
+  }
+  this.templates.char.weakEnemy.regularActions = function(){
+    this.executeMotion();
+    this.startActionsDependentOnLevel();
+    this.checkCollision();
+  }
+
+  // GAME ELEMENT
+  function GameElem(type, template, x, y){
+    this.type = type;
+    // Copy each element property
+    for (key in _.templates[type][template]) this[key] = _.templates[type][template][key];
+    // Set position
+    this.x = x;
+    this.y = y;
   }
 
   // GAME PROTOTYPE METHOD FOR CREATING GAME ELEMENT
