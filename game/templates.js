@@ -126,7 +126,7 @@ Game.prototype.loadTemplates = function(){
   // All Enemies
   for (key in this.templates.char){
     if (this.templates.char[key].fraction === "enemy"){
-      this.template.char[key].regularActions = function(){
+      this.templates.char[key].regularActions = function(){
         this.executeMotion();
         this.startActionsDependentOnLevel();
         this.checkCollision();
