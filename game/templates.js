@@ -115,6 +115,10 @@ Game.prototype.loadTemplates = function(){
     this.startActionsDependentOnLevel();
     this.checkCollision();
   }
+  this.templates.projectile.playerInitialMissle.regularActions = function(){
+    this.executeMotion();
+    this.checkCollision();
+  }
 
   // GAME ELEMENT
   function GameElem(type, template, x, y){

@@ -48,12 +48,5 @@ Game.prototype.spawnProjectile = function(charObj, xProjPos, yProjPos, projTempl
   const freeProjKey = this.findFreeKeyInObj(charKey + "Proj");
   this.projectiles[freeProjKey] = this.createGameElem("projectile", projTemplate, xProjPos, yProjPos);
   this.projectiles[freeProjKey].motion = projDirection;
-  // Regular Actions
-  const _ = this;
-  this.projectiles[freeProjKey].regularActions = function(){
-    _.projectiles[freeProjKey].executeMotion();
-    _.projectiles[freeProjKey].checkCollision();
-  };
-  // END Regular Actions
   this.projectiles[freeProjKey].startRegularActions();
 }

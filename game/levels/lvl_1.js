@@ -64,7 +64,7 @@ Game.prototype.lvl_1 = function(){
         }
       }
 
-      // Actual Method
+      // Actual Actions That Depend On This Level
       enemy.actionsDependentOnLevel = function(){
         if (enemyReachedPoint("A") || enemyReachedPoint("B")) enemy.motion = "none";
         if (allEnemiesReached("A")) setAllEnemiesMotion("right");
