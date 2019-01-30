@@ -116,21 +116,30 @@ Game.prototype.loadTemplates = function(){
   }
 
   // TEMPLATE OBJECTS - REGULAR ACTIONS
+  // Player
   this.templates.char.player.regularActions = function(){
     this.activeKeyToMotion();
     this.executeMotion();
     this.startActionsDependentOnLevel();
     this.checkCollision();
   }
-  this.templates.char.weakEnemy.regularActions = function(){
-    this.executeMotion();
-    this.startActionsDependentOnLevel();
-    this.checkCollision();
+  // All Enemies
+  for (key in this.templates.char){
+    if (this.templates.char[key].fraction === "enemy"){
+      this.template.char[key].regularActions = function(){
+        this.executeMotion();
+        this.startActionsDependentOnLevel();
+        this.checkCollision();
+      }
+    }
   }
-  this.templates.projectile.playerInitialMissle.regularActions = function(){
-    this.executeMotion();
-    this.checkCollision();
-    this.disapearIfOutsideOfCanvas();
+  // All Projectiles
+  for (key in this.templates.projectile){
+    this.templates.projectile[key].regularActions = function(){
+      this.executeMotion();
+      this.checkCollision();
+      this.disapearIfOutsideOfCanvas();
+    }
   }
 
   // GAME ELEMENT
