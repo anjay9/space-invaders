@@ -23,12 +23,6 @@ Game.prototype.lvl_1 = function(){
   };
 
   // ADDITIONAL PROPERIES
-  // Player
-  this.chars.player.projectileSpawner = function(){
-    const xProjPos = this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2;
-    const yProjPos = this.y;
-    _.spawnProjectile(this, xProjPos, yProjPos, "playerInitialMissle", "top");
-  }
   // Enemies
   for (key in this.chars){
     if (this.chars[key].fraction === "enemy"){

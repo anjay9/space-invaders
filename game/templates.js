@@ -15,23 +15,6 @@ Game.prototype.loadTemplates = function(){
     this.motion = "none";
   }
 
-  // TEMPLATE PROTOTYPE - UNREGULAR ACTIONS
-  Template.prototype.startRegularActions = function(){
-    if (typeof this.regularActions === "function"){
-      this.speedInterval = setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
-    }
-    else{
-      console.log(this);
-      console.log("^ The element above doesnt contain the regularActions funciton.");
-    }
-  }
-  Template.prototype.shoot = function(template, direction){
-    if (this.type === "char") this.projectileSpawner();
-    else alert("Game element that isn't a char is trying to shoot.");
-  }
-  Template.prototype.startActionsDependentOnLevel = function(){
-    if (this.actionsDependentOnLevel instanceof Function) this.actionsDependentOnLevel();
-  }
 
   // TEMPlATE PROTOTYPE - REGULAR ACTIONS
   Template.prototype.executeMotion = function(){
@@ -100,6 +83,38 @@ Game.prototype.loadTemplates = function(){
       delete thisContainer()[thisKey];
     }
   }
+  Template.prototype.checkAutoShoot = function(){
+    //const thisKey = _.getKeyByValue(_.chars, this);
+    //if (_.chars[thisKey] !== undefined){
+      this.autoShootLoopsLeft--;
+      if (this.autoShootLoopsLeft === 0){
+        this.shoot();
+        this.autoShootLoopsLeft = this.autoShootLoopsLeftMax + Math.floor(Math.random() * this.autoShootLoopsLeftMax);
+      }
+    //}
+  }
+
+
+  // TEMPLATE PROTOTYPE - UNREGULAR ACTIONS
+  Template.prototype.startRegularActions = function(){
+    if (typeof this.regularActions === "function"){
+      this.speedInterval = setInterval(function(){ this.regularActions() }.bind(this) ,1000/this.speed);
+    }
+    else{
+      console.log(this);
+      console.log("^ The element above doesnt contain the regularActions funciton.");
+    }
+  }
+  Template.prototype.shoot = function(){
+    if (_.getKeyByValue(_.chars, this) !== undefined){
+      if (this.hasOwnProperty("projectileSpawner")) this.projectileSpawner();
+      else alert("Game element that doesn'have a projectileSprawner is trying to shoot.");
+    }
+  }
+  Template.prototype.startActionsDependentOnLevel = function(){
+    if (this.actionsDependentOnLevel instanceof Function) this.actionsDependentOnLevel();
+  }
+
 
   // CREATING TEMPLATE OBJECTS
   this.templates = {
@@ -115,8 +130,16 @@ Game.prototype.loadTemplates = function(){
     }
   }
 
-  // TEMPLATE OBJECTS - REGULAR ACTIONS
+  // TEMPLATE OBJECTS - REGULAR ACTIONS & PROPERTIES EXCLUSIVE FOR CERTAIN ELEMS
+
   // Player
+  // Level-Dependent Properties
+  this.templates.char.player.projectileSpawner = function(){
+    const xProjPos = this.x + this.width / 2 - _.templates.projectile.playerInitialMissle.width / 2;
+    const yProjPos = this.y;
+    _.spawnProjectile(_.getKeyByValue(_.chars, this), xProjPos, yProjPos, "playerInitialMissle", "top");
+  }
+  // Regular Actions
   this.templates.char.player.regularActions = function(){
     this.activeKeyToMotion();
     this.executeMotion();
@@ -126,10 +149,25 @@ Game.prototype.loadTemplates = function(){
   // All Enemies
   for (key in this.templates.char){
     if (this.templates.char[key].fraction === "enemy"){
+      // Level-Dependent Primitives
+      this.templates.char[key].autoShootLoopsLeftMax = 100;
+      this.templates.char[key].autoShootLoopsLeftRandom = 50;
+      this.templates.char[key].autoShootLoopsLeft = this.templates.char[key].autoShootLoopsLeftMax + Math.floor(Math.random() * this.templates.char[key].autoShootLoopsLeftRandom);
+      // Other Level-Dependent Properties
+      this.templates.char[key].projectileSpawner = function(){
+        //console.log(_.getKeyByValue(_.chars, this));
+        if (_.getKeyByValue(_.chars, this) !== "undefinied") {
+          const xProjPos = this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2;
+          const yProjPos = this.y + this.height;
+          _.spawnProjectile(_.getKeyByValue(_.chars, this), xProjPos, yProjPos, "weakEnemyMissle", "down");
+        }
+      }
+      // Regular Actions
       this.templates.char[key].regularActions = function(){
         this.executeMotion();
         this.startActionsDependentOnLevel();
         this.checkCollision();
+        this.checkAutoShoot();
       }
     }
   }

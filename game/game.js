@@ -43,8 +43,7 @@ Game.prototype.findFreeKeyInObj = function(passedString){
   }
 }
 
-Game.prototype.spawnProjectile = function(charObj, xProjPos, yProjPos, projTemplate, projDirection){
-  const charKey = this.getKeyByValue(this.chars, charObj);
+Game.prototype.spawnProjectile = function(charKey, xProjPos, yProjPos, projTemplate, projDirection){
   const freeProjKey = this.findFreeKeyInObj(charKey + "Proj");
   this.projectiles[freeProjKey] = this.createGameElem("projectile", projTemplate, xProjPos, yProjPos);
   this.projectiles[freeProjKey].motion = projDirection;
