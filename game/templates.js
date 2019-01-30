@@ -88,6 +88,18 @@ Game.prototype.loadTemplates = function(){
       delete _.chars[collidedElems.charKey];
     }
   }
+  Template.prototype.disapearIfOutsideOfCanvas = function(){
+    // If the element is totally outside of the canvas then delete it
+    if (this.y + this.height <= 0 || this.y >= _.canvas.height
+    || this.x + this.width <= 0 || this.x >= _.canvas.width){
+      const thisContainer = function(){
+        if (this.type === "char") return _.chars;
+        else if (this.type === "projectile") return _.projectiles;
+      }.bind(this);
+      const thisKey = _.getKeyByValue(thisContainer(), this);
+      delete thisContainer()[thisKey];
+    }
+  }
 
   // CREATING TEMPLATE OBJECTS
   this.templates = {
@@ -118,6 +130,7 @@ Game.prototype.loadTemplates = function(){
   this.templates.projectile.playerInitialMissle.regularActions = function(){
     this.executeMotion();
     this.checkCollision();
+    this.disapearIfOutsideOfCanvas();
   }
 
   // GAME ELEMENT
