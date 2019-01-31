@@ -41,7 +41,7 @@ Game.prototype.addKeys = function(){
     // Function declarations
     const removeActiveKeys = (value) => {
       for (i=0; i<player.activeMotionKeys.length; i++){
-        if (player.activeMotionKeys[i] === value) player.activeMotionKeys.splice(i,1);
+        if (player.activeMotionKeys[i] === value) player.activeMotionKeys.splice(i, 1);
       }
     }
 

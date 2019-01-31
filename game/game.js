@@ -10,6 +10,10 @@ Game.prototype.getKeyByValue = function(object, value){
   return Object.keys(object).find(key => object[key] === value);
 }
 
+Game.prototype.getRandomIntegerBetween = function(min, max){
+  return Math.floor(Math.random() * max - min) + min;
+}
+
 Game.prototype.loadBasics = function(){
   this.canvas = document.getElementById("space-invaders-canvas");
   this.context = this.canvas.getContext("2d");

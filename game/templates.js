@@ -84,14 +84,11 @@ Game.prototype.loadTemplates = function(){
     }
   }
   Template.prototype.checkAutoShoot = function(){
-    //const thisKey = _.getKeyByValue(_.chars, this);
-    //if (_.chars[thisKey] !== undefined){
-      this.autoShootLoopsLeft--;
-      if (this.autoShootLoopsLeft === 0){
-        this.shoot();
-        this.autoShootLoopsLeft = this.autoShootLoopsLeftMax + Math.floor(Math.random() * this.autoShootLoopsLeftMax);
-      }
-    //}
+    this.autoShootLoopsLeft--;
+    if (this.autoShootLoopsLeft <= 0){
+      this.shoot();
+      this.autoShootLoopsLeft = _.getRandomIntegerBetween(this.autoShootLoopsLeftMin, this.autoShootLoopsLeftMax);
+    }
   }
 
 
@@ -119,14 +116,14 @@ Game.prototype.loadTemplates = function(){
   // CREATING TEMPLATE OBJECTS
   this.templates = {
     char:{
-      player: new Template("player", "limegreen", 30, 30, 200),
+      player: new Template("player", "limegreen", 30, 30, 50),
       weakEnemy: new Template("enemy", "coral", 30, 30, 50),
       mediumEnemy: new Template("enemy", "teal", 30, 30, 100),
       strongEnemy: new Template("enemy", "maroon", 30, 30, 100, 150)
     },
     projectile:{
       playerInitialMissle: new Template("player", "lime", 5, 5, 125),
-      weakEnemyMissle: new Template("enemy", "fuchsia", 5, 5, 200)
+      weakEnemyMissle: new Template("enemy", "fuchsia", 5, 5, 60)
     }
   }
 
@@ -148,14 +145,13 @@ Game.prototype.loadTemplates = function(){
   }
   // All Enemies
   for (key in this.templates.char){
-    if (this.templates.char[key].fraction === "enemy"){
+    const charTmpl = this.templates.char[key];
+    if (charTmpl.fraction === "enemy"){
       // Level-Dependent Primitives
-      this.templates.char[key].autoShootLoopsLeftMax = 100;
-      this.templates.char[key].autoShootLoopsLeftRandom = 50;
-      this.templates.char[key].autoShootLoopsLeft = this.templates.char[key].autoShootLoopsLeftMax + Math.floor(Math.random() * this.templates.char[key].autoShootLoopsLeftRandom);
+      charTmpl.autoShootLoopsLeftMax = 3000;
+      charTmpl.autoShootLoopsLeftMin = 500;
       // Other Level-Dependent Properties
-      this.templates.char[key].projectileSpawner = function(){
-        //console.log(_.getKeyByValue(_.chars, this));
+      charTmpl.projectileSpawner = function(){
         if (_.getKeyByValue(_.chars, this) !== "undefinied") {
           const xProjPos = this.x + this.width / 2 - _.templates.projectile.weakEnemyMissle.width / 2;
           const yProjPos = this.y + this.height;
@@ -163,7 +159,7 @@ Game.prototype.loadTemplates = function(){
         }
       }
       // Regular Actions
-      this.templates.char[key].regularActions = function(){
+      charTmpl.regularActions = function(){
         this.executeMotion();
         this.startActionsDependentOnLevel();
         this.checkCollision();
@@ -188,11 +184,13 @@ Game.prototype.loadTemplates = function(){
     // Set position
     this.x = x;
     this.y = y;
+    // Get random number of loops left until shoot
+    this.autoShootLoopsLeft = _.getRandomIntegerBetween(this.autoShootLoopsLeftMin, this.autoShootLoopsLeftMax);
   }
 
   // GAME PROTOTYPE METHOD FOR CREATING GAME ELEMENT
   Game.prototype.createGameElem = function(type, template, x, y){
     return new GameElem(type, template, x, y);
   }
-
+  
 }
